@@ -20,6 +20,10 @@
 #   codex      the OpenAI codex CLI, non-interactively (codex exec); uses the
 #              CLI's own login, so no API key and no local model server. The
 #              rewrite runs with --sandbox read-only outside any repo.
+#   fm         the `fm` CLI for Apple's on-device Foundation Models
+#              (macOS 26+, Apple Intelligence). Keyless and fully on-device
+#              like codex, but with no server or login of its own — `fm
+#              respond` just runs. Its only model is "system".
 #   anthropic  Anthropic Messages API; key from CLAUDISH_ANTHROPIC_KEY or
 #              ANTHROPIC_API_KEY; base URL from CLAUDISH_ANTHROPIC_URL
 #   openai     any OpenAI-compatible /chat/completions endpoint (OpenAI,
@@ -89,6 +93,7 @@ case "$PROVIDER" in
   anthropic) MODEL="${CLAUDISH_MODEL:-claude-haiku-4-5}" ;;
   openai)    MODEL="${CLAUDISH_MODEL:-gpt-5.6-luna}" ;;
   codex)     MODEL="${CLAUDISH_MODEL:-}" ;;  # empty = the codex CLI's configured default
+  fm)        MODEL="${CLAUDISH_MODEL:-system}" ;;  # "system" is fm's only model
   *)         MODEL="${CLAUDISH_MODEL:-gemma4:26b-mlx}" ;;
 esac
 
@@ -309,6 +314,40 @@ $_user" >/dev/null 2>"$_errf" &
       fi
       rm -f "$_out" "$_errf" 2>/dev/null
       ;;
+    fm)
+      if ! command -v fm >/dev/null 2>&1; then
+        dbg "fm: CLI not found"; curl_rc=1; return 0
+      fi
+      _out="$(mktemp "${TMPDIR:-/tmp}/claudish-fm-out.XXXXXX" 2>/dev/null)" || return 2
+      _errf="$(mktemp "${TMPDIR:-/tmp}/claudish-fm-err.XXXXXX" 2>/dev/null)" || { rm -f "$_out"; return 2; }
+      trap 'rm -f "$_out" "$_errf" 2>/dev/null' EXIT
+      # Unlike codex, fm has a real system-prompt channel (-i); nothing to
+      # prepend. --no-stream: rewrite.sh already has the whole message
+      # buffered, so there is nothing to stream to. No timeout(1) on stock
+      # macOS, so background the call and kill on expiry (same as codex above).
+      fm respond --no-stream ${MODEL:+-m "$MODEL"} -i "$_sys" "$_user" \
+        >"$_out" 2>"$_errf" &
+      _pid=$!
+      _t=0
+      while kill -0 "$_pid" 2>/dev/null; do
+        if [ "$_t" -ge "$LLM_TIMEOUT" ]; then
+          kill -TERM "$_pid" 2>/dev/null; wait "$_pid" 2>/dev/null
+          curl_rc=28
+          rm -f "$_out" "$_errf" 2>/dev/null
+          dbg "fm timed out after ${LLM_TIMEOUT}s"
+          return 0
+        fi
+        sleep 1; _t=$((_t + 1))
+      done
+      wait "$_pid"; _rc=$?
+      rewrite="$(cat "$_out" 2>/dev/null)"
+      if [ "$_rc" != "0" ]; then
+        err="$(tail -c 400 "$_errf" 2>/dev/null)"
+        err="${err:-fm respond failed with exit $_rc}"
+        rewrite=""
+      fi
+      rm -f "$_out" "$_errf" 2>/dev/null
+      ;;
     *)
       req="$(jq -n --arg m "$MODEL" --arg s "$_sys" --arg u "$_user" \
             '{model:$m,stream:false,think:false,options:{temperature:0.3},messages:[{role:"system",content:$s},{role:"user",content:$u}]}' 2>/dev/null)"
@@ -394,6 +433,15 @@ llm_notice_why() {
         NOTICE_WHY="the rewrite timed out after ${LLM_TIMEOUT}s — ${TIMEOUT_HINT:-raise the timeout}"
       elif [ -n "${err:-}" ]; then
         NOTICE_WHY="codex error: ${err}"
+      fi
+      ;;
+    fm)
+      if ! command -v fm >/dev/null 2>&1; then
+        NOTICE_WHY="the fm CLI is not on PATH — it ships with macOS 26+ (Apple Intelligence must be enabled); pick another CLAUDISH_PROVIDER on an older OS or unsupported Mac"
+      elif [ "$curl_rc" = "28" ]; then
+        NOTICE_WHY="the rewrite timed out after ${LLM_TIMEOUT}s — ${TIMEOUT_HINT:-raise the timeout}"
+      elif [ -n "${err:-}" ]; then
+        NOTICE_WHY="fm error: ${err}"
       fi
       ;;
     *)

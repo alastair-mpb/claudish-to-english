@@ -17,7 +17,7 @@ the two ever disagree.
 | `rewrite-md.sh` | `PostToolUse` hook — rewrites Markdown files (opt-in, off by default) |
 | `claudish-ctl.sh` | backs `/claudish`; writes the `~/.claude/claudish-*` flag files, prints the dashboard |
 | `session-notice.sh` | `SessionStart` hook — warns that flag files from an earlier session are still active |
-| `providers.sh` | provider layer (ollama / anthropic / openai / codex). Sourced by both hooks |
+| `providers.sh` | provider layer (ollama / anthropic / openai / codex / fm). Sourced by both hooks |
 | `lang.sh` | output-language resolver + the sanitiser for untrusted config values. Sourced by both hooks |
 | `commands/claudish.md` | the `/claudish` slash command |
 | `hooks/hooks.json` | wires the three hooks |

@@ -5,6 +5,19 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **`fm` provider.** `CLAUDISH_PROVIDER=fm` runs rewrites through Apple's
+  on-device Foundation Models CLI (`fm respond`) — keyless, no local model
+  server, and no network call at all, unlike every other provider. Same
+  shell-out shape as the `codex` provider (background the CLI call, poll with
+  `kill -0` and kill on timeout, since stock macOS has no `timeout(1)`), but
+  `fm` has a real system-prompt channel (`-i`) so nothing needs prepending.
+  Its only model is `system`, the default for `CLAUDISH_MODEL` under this
+  provider. Requires macOS 26+ with Apple Intelligence enabled and `fm` on
+  PATH; fails open like every other provider.
+
 ## [0.9.0] - 2026-08-28
 
 ### Added

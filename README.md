@@ -9,7 +9,8 @@
 
 A Claude Code plugin that shows a **plain-English rewrite** of each assistant
 message, produced by a **local LLM via ollama** (default), the **codex CLI**,
-the **Anthropic API**, or any **OpenAI-compatible API**. It is **display-only**:
+the **`fm` CLI** (Apple's on-device Foundation Models), the **Anthropic API**,
+or any **OpenAI-compatible API**. It is **display-only**:
 Claude's own reasoning and the saved transcript keep the original text — only
 what you read on screen changes.
 
@@ -438,7 +439,7 @@ frontmatter, so the frontmatter stays on line 1 where parsers expect it.
 
 ## Providers
 
-Rewrites go through one of four providers, selected with `CLAUDISH_PROVIDER`
+Rewrites go through one of five providers, selected with `CLAUDISH_PROVIDER`
 (both hooks share the setting). The default is unchanged from upstream: local
 ollama, nothing leaves your machine.
 
@@ -446,6 +447,7 @@ ollama, nothing leaves your machine.
 |---|---|---|---|
 | `ollama` (default) | `CLAUDISH_OLLAMA` (`http://localhost:11434`) | none | `gemma4:26b-mlx` |
 | `codex` | OpenAI codex CLI (`codex exec`) — uses the CLI's own login | none | *(CLI default)* |
+| `fm` | Apple Foundation Models CLI (`fm respond`) — on-device, macOS 26+ | none | `system` |
 | `anthropic` | `CLAUDISH_ANTHROPIC_URL` (`https://api.anthropic.com`) + `/v1/messages` | `CLAUDISH_ANTHROPIC_KEY` or `ANTHROPIC_API_KEY` | `claude-haiku-4-5` |
 | `openai` | `CLAUDISH_OPENAI_URL` + `/chat/completions` | `CLAUDISH_OPENAI_KEY` or `OPENAI_API_KEY` | `gpt-5.6-luna` |
 
@@ -458,6 +460,15 @@ the CLI's configured model; unset uses the CLI default. `CLAUDISH_CODEX_EFFORT`
 overrides the CLI's reasoning effort for the rewrite only (e.g. `low` keeps a
 per-message rewrite fast even when the CLI's coding default is a high-effort
 tier). Requires `codex` on PATH; fails open like every other provider.
+
+### fm
+
+`CLAUDISH_PROVIDER=fm` runs the rewrite through Apple's on-device Foundation
+Models CLI (`fm respond`) — no API key, no local model server, and (unlike
+every other provider) no network call at all. Requires macOS 26+ with Apple
+Intelligence enabled and `fm` on PATH (it ships with the OS; nothing to
+install). Its only model is `system`, the on-device Apple model, which is
+also `CLAUDISH_MODEL`'s default. Fails open like every other provider.
 
 > [!CAUTION]
 > The cloud providers pick their key up from the **ambient environment**
@@ -478,6 +489,9 @@ tier). Requires `codex` on PATH; fails open like every other provider.
 # ollama (default) — local, nothing leaves your machine
 export CLAUDISH_PROVIDER=ollama
 export CLAUDISH_MODEL=gemma4:26b-mlx        # the default; any pulled tag works
+
+# fm — on-device Apple Foundation Models, no network call at all
+export CLAUDISH_PROVIDER=fm
 
 # Anthropic — Claude Haiku
 export CLAUDISH_PROVIDER=anthropic
@@ -557,7 +571,7 @@ Notes:
 | `CLAUDISH_PROMPT_FILE` | *(unset)* | Path to a file whose contents replace the display hook's system prompt (whole prompt, not merged). Empty/unreadable falls back to the built-in default. See [Customizing the rewrite prompt](#customizing-the-rewrite-prompt). |
 | `CLAUDISH_LANG` | *(unset)* | Language to rewrite into, e.g. `Esperanto`. Unset falls back to the `language` key in `.claude/settings*.json`; with neither set, the rewrite keeps the input's language. Empty ignores the settings key; `English` forces English. See [Output language](#output-language). |
 | `CLAUDISH_LANG_FILE` | `~/.claude/claudish-lang` | Runtime language override: a language name in this file wins over `CLAUDISH_LANG` and the settings key, re-checked every message. Written by `/claudish language <name>`. See [Controlling it live](#controlling-it-live-claudish). |
-| `CLAUDISH_PROVIDER` | `ollama` | `ollama`, `codex`, `anthropic`, or `openai` — which LLM serves rewrites (both hooks). |
+| `CLAUDISH_PROVIDER` | `ollama` | `ollama`, `codex`, `fm`, `anthropic`, or `openai` — which LLM serves rewrites (both hooks). |
 | `CLAUDISH_MODEL` | *(per provider)* | Model name; overrides the provider default (see [Providers](#providers)). The ollama default `gemma4:26b-mlx` is MLX (Apple-silicon only; Windows users must override). |
 | `CLAUDISH_MODEL_FILE` | `~/.claude/claudish-model` | Runtime model override: a model name in this file wins over `CLAUDISH_MODEL`, re-checked every message (applies to whatever provider is configured). Written by `/claudish model <name>`. See [Controlling it live](#controlling-it-live-claudish). |
 | `CLAUDISH_OLLAMA` | `http://localhost:11434` | ollama base URL. |
