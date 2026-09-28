@@ -20,10 +20,11 @@
 #   codex      the OpenAI codex CLI, non-interactively (codex exec); uses the
 #              CLI's own login, so no API key and no local model server. The
 #              rewrite runs with --sandbox read-only outside any repo.
-#   fm         the `fm` CLI for Apple's on-device Foundation Models
-#              (macOS 26+, Apple Intelligence). Keyless and fully on-device
-#              like codex, but with no server or login of its own — `fm
-#              respond` just runs. Its only model is "system".
+#   fm         the `fm` CLI for Apple's on-device Foundation Models (macOS 27+
+#              — that's the fm CLI's own requirement, newer than Apple
+#              Intelligence itself). Keyless and fully on-device like codex,
+#              but with no server or login of its own — `fm respond` just
+#              runs. Its only model is "system".
 #   anthropic  Anthropic Messages API; key from CLAUDISH_ANTHROPIC_KEY or
 #              ANTHROPIC_API_KEY; base URL from CLAUDISH_ANTHROPIC_URL
 #   openai     any OpenAI-compatible /chat/completions endpoint (OpenAI,
@@ -437,7 +438,7 @@ llm_notice_why() {
       ;;
     fm)
       if ! command -v fm >/dev/null 2>&1; then
-        NOTICE_WHY="the fm CLI is not on PATH — it ships with macOS 26+ (Apple Intelligence must be enabled); pick another CLAUDISH_PROVIDER on an older OS or unsupported Mac"
+        NOTICE_WHY="the fm CLI is not on PATH — it ships with macOS 27+ (and needs Apple Intelligence enabled); pick another CLAUDISH_PROVIDER on an older OS or unsupported Mac"
       elif [ "$curl_rc" = "28" ]; then
         NOTICE_WHY="the rewrite timed out after ${LLM_TIMEOUT}s — ${TIMEOUT_HINT:-raise the timeout}"
       elif [ -n "${err:-}" ]; then

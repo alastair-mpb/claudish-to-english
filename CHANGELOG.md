@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `kill -0` and kill on timeout, since stock macOS has no `timeout(1)`), but
   `fm` has a real system-prompt channel (`-i`) so nothing needs prepending.
   Its only model is `system`, the default for `CLAUDISH_MODEL` under this
-  provider. Requires macOS 26+ with Apple Intelligence enabled and `fm` on
-  PATH; fails open like every other provider.
+  provider. Requires macOS 27+ (the `fm` CLI's own requirement) with Apple
+  Intelligence enabled and `fm` on PATH; fails open like every other provider.
 
 ## [0.9.0] - 2026-08-28
 

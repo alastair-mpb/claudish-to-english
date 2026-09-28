@@ -448,7 +448,7 @@ ollama, nothing leaves your machine.
 |---|---|---|---|
 | `ollama` (default) | `CLAUDISH_OLLAMA` (`http://localhost:11434`) | none | `gemma4:26b-mlx` |
 | `codex` | OpenAI codex CLI (`codex exec`) — uses the CLI's own login | none | *(CLI default)* |
-| `fm` | Apple Foundation Models CLI (`fm respond`) — on-device, macOS 26+ | none | `system` |
+| `fm` | Apple Foundation Models CLI (`fm respond`) — on-device, macOS 27+ | none | `system` |
 | `anthropic` | `CLAUDISH_ANTHROPIC_URL` (`https://api.anthropic.com`) + `/v1/messages` | `CLAUDISH_ANTHROPIC_KEY` or `ANTHROPIC_API_KEY` | `claude-haiku-4-5` |
 | `openai` | `CLAUDISH_OPENAI_URL` + `/chat/completions` | `CLAUDISH_OPENAI_KEY` or `OPENAI_API_KEY` | `gpt-5.6-luna` |
 
@@ -466,7 +466,8 @@ tier). Requires `codex` on PATH; fails open like every other provider.
 
 `CLAUDISH_PROVIDER=fm` runs the rewrite through Apple's on-device Foundation
 Models CLI (`fm respond`) — no API key, no local model server, and (unlike
-every other provider) no network call at all. Requires macOS 26+ with Apple
+every other provider) no network call at all. Requires macOS 27+ (the `fm`
+CLI's own requirement — newer than Apple Intelligence itself) with Apple
 Intelligence enabled and `fm` on PATH (it ships with the OS; nothing to
 install). Its only model is `system`, the on-device Apple model, which is
 also `CLAUDISH_MODEL`'s default. Fails open like every other provider.
