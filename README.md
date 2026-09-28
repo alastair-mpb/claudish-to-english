@@ -32,7 +32,8 @@ they are written or edited (opt-in, off by default).
 
 With the default `ollama` provider this plugin shells out to a **local** model,
 and nothing works until these are in place. (With `CLAUDISH_PROVIDER=anthropic`
-or `openai` you need only `jq`, `curl`, and an API key — see
+or `openai` you need only `jq`, `curl`, and an API key; with `codex` or `fm`
+you need only that CLI already installed and logged in/enabled — see
 [Providers](#providers).)
 
 <a id="macos-setup"></a>
@@ -636,7 +637,9 @@ see — much slower for identical output quality on this simple task. Keep it of
 ## Privacy / egress
 
 With the default provider the rewriter runs **entirely locally** against
-ollama, so **no conversation content leaves your machine**. Setting
+ollama, so **no conversation content leaves your machine**. `codex` and `fm`
+are local too — `fm` more so, since it never opens a network connection at
+all (no local server, unlike ollama's `localhost:11434`). Setting
 `CLAUDISH_PROVIDER` to `anthropic` or `openai` changes that deliberately: every
 rewritten assistant message (and, with the Markdown hook enabled, file
 contents) is sent to that API. The same applies to pointing `CLAUDISH_OLLAMA`
@@ -660,7 +663,7 @@ claudish-to-english/
 ├── rewrite-md.sh           # markdown-file rewrite hook (opt-in)
 ├── claudish-ctl.sh         # runtime state switcher + dashboard backing /claudish (writes the flag files)
 ├── session-notice.sh       # SessionStart hook: announces leftover /claudish overrides on a new session
-├── providers.sh            # provider layer (ollama/anthropic/openai), sourced by both hooks
+├── providers.sh            # provider layer (ollama/codex/fm/anthropic/openai), sourced by both hooks
 ├── lang.sh                 # output-language resolver (env + .claude/settings*.json), sourced by both hooks
 ├── CHANGELOG.md            # notable changes per version (Keep a Changelog)
 ├── LICENSE
